@@ -1,39 +1,47 @@
 package com.prashant.ai_dev_platform.controller;
 
-import com.prashant.ai_dev_platform.service.GeminiService;
+import com.prashant.ai_dev_platform.dto.AiRequest;
+import com.prashant.ai_dev_platform.dto.AiResponse;
+import com.prashant.ai_dev_platform.service.AiService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai")
+@CrossOrigin(
+        origins = "https://ai-dev-platform-fe.vercel.app",
+        allowedHeaders = "*",
+        methods = {
+                RequestMethod.POST,
+                RequestMethod.OPTIONS
+        }
+)
 public class AiController {
 
-    private final GeminiService geminiService;
+    private final AiService aiService;
 
-    public AiController(GeminiService geminiService) {
-        this.geminiService = geminiService;
+    public AiController(AiService aiService) {
+        this.aiService = aiService;
     }
 
     @PostMapping("/review")
-    public Map<String, String> review(@RequestBody Map<String, String> request) {
-        try {
-            String input = request.get("input");
-
-            if (input == null || input.isBlank()) {
-                return Map.of("result", "Please provide valid code input.");
-            }
-
-            String result = geminiService.generateContent(input);
-            return Map.of("result", result);
-
-        } catch (Exception e) {
-            return Map.of("result", "AI service failed: " + e.getMessage());
-        }
+    public AiResponse review(@RequestBody AiRequest request) {
+        return new AiResponse(aiService.reviewCode(request.getInput()));
     }
 
-    @RequestMapping(value = "/review", method = RequestMethod.OPTIONS)
-    public void handleOptions() {
-        // Browser preflight support
+    @PostMapping("/testcases")
+    public AiResponse testcases(@RequestBody AiRequest request) {
+        return new AiResponse(aiService.generateTestCases(request.getInput()));
+    }
+
+    @PostMapping("/aws")
+    public AiResponse aws(@RequestBody AiRequest request) {
+        return new AiResponse(aiService.recommendAwsArchitecture(request.getInput()));
+    }
+
+    // 🔥 THIS FIXES PREFLIGHT
+    @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
+    public ResponseEntity<Void> options() {
+        return ResponseEntity.ok().build();
     }
 }
