@@ -7,14 +7,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(
-        origins = "https://ai-dev-platform-fe.vercel.app",
-        allowedHeaders = "*",
-        methods = {
-                RequestMethod.POST,
-                RequestMethod.OPTIONS
-        }
-)
 public class AiController {
 
     private final GeminiService geminiService;
