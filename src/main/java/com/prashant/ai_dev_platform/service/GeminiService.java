@@ -3,9 +3,9 @@ package com.prashant.ai_dev_platform.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
@@ -15,12 +15,14 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    private final WebClient webClient = WebClient.builder().build();
+    private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generateContent(String prompt) {
         try {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+            String url =
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key="
+                            + apiKey;
 
             Map<String, Object> requestBody = Map.of(
                     "contents", new Object[]{
@@ -32,15 +34,20 @@ public class GeminiService {
                     }
             );
 
-            String rawResponse = webClient.post()
-                    .uri(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-            JsonNode root = objectMapper.readTree(rawResponse);
+            HttpEntity<Map<String, Object>> entity =
+                    new HttpEntity<>(requestBody, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+
+            JsonNode root = objectMapper.readTree(response.getBody());
 
             return root.path("candidates")
                     .get(0)

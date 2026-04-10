@@ -8,14 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/ai")
-@CrossOrigin(
-        origins = "https://ai-dev-platform-fe.vercel.app",
-        allowedHeaders = "*",
-        methods = {
-                RequestMethod.POST,
-                RequestMethod.OPTIONS
-        }
-)
+@CrossOrigin(origins = "*")
 public class AiController {
 
     private final AiService aiService;
